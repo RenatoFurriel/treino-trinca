@@ -1,0 +1,85 @@
+@import '@fontsource/anton/400.css';
+@import '@fontsource-variable/archivo';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #08080a;
+  --color-surface: #121216;
+  --color-surface-2: #1b1b21;
+  --color-line: #2b2b34;
+  --color-line-strong: #43434f;
+  --color-mute: #83838f;
+  --color-signal: #ff3b21;
+  --color-done: #c6f24e;
+
+  --font-display: 'Anton', ui-sans-serif, sans-serif;
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: #f2f2f4;
+  font-family: var(--font-sans);
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Textura de fundo: leve grão diagonal, dá profundidade sem custar leitura. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.014) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+@utility stencil {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 0.92;
+}
+
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--color-mute);
+}
+
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@utility rise {
+  animation: slide-up 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
