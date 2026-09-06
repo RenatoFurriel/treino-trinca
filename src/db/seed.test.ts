@@ -81,8 +81,9 @@ describe('protocolo Treino Trinca', () => {
   })
 
   it('agenda 3x por semana com um dia de repouso entre os treinos', async () => {
-    const agenda = await db.schedule.orderBy('diaDaSemana').toArray()
-    const comTreino = agenda.filter((d) => d.workoutId !== null).map((d) => d.diaDaSemana)
+    const { agenda } = (await db.settings.get(1))!
+    expect(agenda).toHaveLength(7)
+    const comTreino = agenda.flatMap((id, dia) => (id === null ? [] : [dia]))
     expect(comTreino).toEqual([1, 3, 5]) // segunda, quarta, sexta
   })
 

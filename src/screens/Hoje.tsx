@@ -4,26 +4,25 @@ import { Cabecalho } from '../components/Cabecalho'
 import { iniciarSessao, sessaoEmAndamento } from '../db/queries'
 import { db } from '../db/schema'
 import { aderenciaDaSemana, inicioDaSemana } from '../lib/metrics'
+import { treinoDoDia } from '../db/agenda'
+import { useConfig } from '../db/useConfig'
 
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 export function Hoje() {
   const navegar = useNavigate()
   const hoje = new Date()
+  const { agenda } = useConfig()
 
   const dados = useLiveQuery(async () => {
-    const agenda = await db.schedule.toArray()
     const workouts = await db.workouts.orderBy('ordem').toArray()
     const inicio = inicioDaSemana(hoje).getTime()
     const sessoesDaSemana = await db.sessions.where('iniciadaEm').aboveOrEqual(inicio).toArray()
     const aberta = await sessaoEmAndamento()
-    const doDia = agenda.find((d) => d.diaDaSemana === hoje.getDay())
-    const treinoDeHoje = doDia?.workoutId
-      ? (workouts.find((w) => w.id === doDia.workoutId) ?? null)
-      : null
+    const idDeHoje = treinoDoDia(agenda, hoje.getDay())
+    const treinoDeHoje = idDeHoje ? (workouts.find((w) => w.id === idDeHoje) ?? null) : null
 
     return {
-      agenda,
       workouts,
       treinoDeHoje,
       aberta,
@@ -34,11 +33,11 @@ export function Hoje() {
           .map((s) => new Date(s.iniciadaEm).getDay()),
       ),
     }
-  }, [])
+  }, [agenda])
 
   if (!dados) return null
 
-  const { treinoDeHoje, aberta, aderencia, agenda, diasFeitos, workouts } = dados
+  const { treinoDeHoje, aberta, aderencia, diasFeitos, workouts } = dados
 
   async function comecar(workoutId: number) {
     const sessionId = await iniciarSessao(workoutId)
@@ -107,7 +106,7 @@ export function Hoje() {
 
           <ul className="mt-4 flex justify-between gap-1.5">
             {DIAS.map((dia, indice) => {
-              const temTreino = agenda.find((d) => d.diaDaSemana === indice)?.workoutId != null
+              const temTreino = treinoDoDia(agenda, indice) !== null
               const feito = diasFeitos.has(indice)
               const eHoje = indice === hoje.getDay()
               return (

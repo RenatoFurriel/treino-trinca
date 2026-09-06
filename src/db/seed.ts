@@ -262,15 +262,13 @@ export const PROTOCOLO_PADRAO: TreinoSeed[] = [
 ]
 
 /** 3x na semana com um dia de repouso entre os treinos, como pede o protocolo. */
-const AGENDA_PADRAO = [null, 0, null, 1, null, 2, null]
+const AGENDA_PADRAO: (number | null)[] = [null, 0, null, 1, null, 2, null]
 
 /** Popula o banco na primeira abertura. Não faz nada se já houver treinos. */
 export async function semearSeVazio(protocolo: TreinoSeed[] = PROTOCOLO_PADRAO) {
   if ((await db.workouts.count()) > 0) return
 
   await db.transaction('rw', db.tables, async () => {
-    await db.settings.put(SETTINGS_PADRAO)
-
     const idsDosTreinos: number[] = []
 
     for (const [ordem, treino] of protocolo.entries()) {
@@ -296,11 +294,11 @@ export async function semearSeVazio(protocolo: TreinoSeed[] = PROTOCOLO_PADRAO) 
       }
     }
 
-    await db.schedule.bulkPut(
-      AGENDA_PADRAO.map((indice, diaDaSemana) => ({
-        diaDaSemana,
-        workoutId: indice === null ? null : (idsDosTreinos[indice] ?? null),
-      })),
-    )
+    await db.settings.put({
+      ...SETTINGS_PADRAO,
+      agenda: AGENDA_PADRAO.map((indice) =>
+        indice === null ? null : (idsDosTreinos[indice] ?? null),
+      ),
+    })
   })
 }

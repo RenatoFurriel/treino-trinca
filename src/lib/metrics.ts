@@ -1,4 +1,5 @@
-import type { ScheduleEntry, Session, SetLog } from '../db/schema'
+import type { Agenda } from '../db/agenda'
+import type { Session, SetLog } from '../db/schema'
 
 /** Volume de trabalho: soma de reps x carga. */
 export function volume(logs: readonly SetLog[]): number {
@@ -30,11 +31,11 @@ export interface Aderencia {
  */
 export function aderenciaDaSemana(
   sessoes: readonly Pick<Session, 'finalizadaEm'>[],
-  agenda: readonly ScheduleEntry[],
+  agenda: Agenda,
   hoje: Date,
 ): Aderencia {
   const planejados = agenda.filter(
-    (dia) => dia.workoutId !== null && dia.diaDaSemana <= hoje.getDay(),
+    (workoutId, diaDaSemana) => workoutId !== null && diaDaSemana <= hoje.getDay(),
   ).length
 
   const inicio = inicioDaSemana(hoje).getTime()

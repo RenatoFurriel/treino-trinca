@@ -14,7 +14,6 @@ const TABELAS_EXPORTADAS = [
   'workoutExercises',
   'sessions',
   'setLogs',
-  'schedule',
   'settings',
 ] as const
 

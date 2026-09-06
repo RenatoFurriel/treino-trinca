@@ -2,12 +2,13 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Cabecalho } from '../components/Cabecalho'
 import { db, type Exercise, type WorkoutExercise } from '../db/schema'
+import { removerTreino } from '../db/agenda'
 import { useConfig } from '../db/useConfig'
 
 export function TreinoEditor() {
   const workoutId = Number(useParams().workoutId)
   const navegar = useNavigate()
-  const { descansoPadraoSeg } = useConfig()
+  const { descansoPadraoSeg, agenda } = useConfig()
 
   const dados = useLiveQuery(async () => {
     const treino = await db.workouts.get(workoutId)
@@ -50,10 +51,10 @@ export function TreinoEditor() {
 
   async function apagarTreino() {
     if (!confirm(`Apagar “${treino.nome}”? O histórico de treinos já feitos continua.`)) return
-    await db.transaction('rw', db.workouts, db.workoutExercises, db.schedule, async () => {
+    await db.transaction('rw', db.workouts, db.workoutExercises, db.settings, async () => {
       await db.workoutExercises.where('workoutId').equals(workoutId).delete()
       await db.workouts.delete(workoutId)
-      await db.schedule.where('workoutId').equals(workoutId).modify({ workoutId: null })
+      await db.settings.update(1, { agenda: removerTreino(agenda, workoutId) })
     })
     navegar('/protocolo')
   }

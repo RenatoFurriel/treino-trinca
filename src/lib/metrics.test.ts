@@ -55,15 +55,8 @@ describe('inicioDaSemana', () => {
 })
 
 describe('aderenciaDaSemana', () => {
-  const agenda = [
-    { diaDaSemana: 0, workoutId: null },
-    { diaDaSemana: 1, workoutId: 10 },
-    { diaDaSemana: 2, workoutId: 11 },
-    { diaDaSemana: 3, workoutId: null },
-    { diaDaSemana: 4, workoutId: 10 },
-    { diaDaSemana: 5, workoutId: 11 },
-    { diaDaSemana: 6, workoutId: null },
-  ]
+  // dom, seg, ter, qua, qui, sex, sáb
+  const agenda = [null, 10, 11, null, 10, 11, null]
   // Semana de domingo 31/08 a sábado 06/09/2025.
   const hoje = new Date(2025, 8, 5, 12, 0) // sexta
 

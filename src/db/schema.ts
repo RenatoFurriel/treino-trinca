@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { AGENDA_VAZIA, type Agenda } from './agenda'
 
 /** Grupos usados para agregar volume semanal na tela de Evolução. */
 export type GrupoMuscular =
@@ -74,18 +75,14 @@ export interface SetLog {
   feitaEm: number
 }
 
-/** diaDaSemana: 0 = domingo. workoutId nulo = descanso. */
-export interface ScheduleEntry {
-  diaDaSemana: number
-  workoutId: number | null
-}
-
 export interface Settings {
   id: 1
   unidade: 'kg' | 'lb'
   descansoPadraoSeg: number
   vibrar: boolean
   manterTelaAcesa: boolean
+  /** Sete dias, domingo em 0. Ver agenda.ts para o porquê de morar aqui. */
+  agenda: Agenda
 }
 
 export interface MediaBlob {
@@ -99,6 +96,7 @@ export const SETTINGS_PADRAO: Settings = {
   descansoPadraoSeg: 50,
   vibrar: true,
   manterTelaAcesa: true,
+  agenda: AGENDA_VAZIA,
 }
 
 export class TreinoDB extends Dexie {
@@ -107,7 +105,6 @@ export class TreinoDB extends Dexie {
   workoutExercises!: EntityTable<WorkoutExercise, 'id'>
   sessions!: EntityTable<Session, 'id'>
   setLogs!: EntityTable<SetLog, 'id'>
-  schedule!: EntityTable<ScheduleEntry, 'diaDaSemana'>
   settings!: EntityTable<Settings, 'id'>
   mediaBlobs!: EntityTable<MediaBlob, 'id'>
 
@@ -123,6 +120,27 @@ export class TreinoDB extends Dexie {
       settings: 'id',
       mediaBlobs: '++id',
     })
+
+    // v2: a agenda sai da tabela `schedule` e entra em settings. Motivo em
+    // agenda.ts — domingo tinha chave primária 0 e o useLiveQuery não via a
+    // alteração. A tabela só é removida na v3, para poder ser lida aqui.
+    this.version(2).upgrade(async (tx) => {
+      const linhas = await tx.table('schedule').toArray()
+      const agenda = [...AGENDA_VAZIA]
+      for (const linha of linhas) {
+        if (linha.diaDaSemana >= 0 && linha.diaDaSemana <= 6) {
+          agenda[linha.diaDaSemana] = linha.workoutId ?? null
+        }
+      }
+      await tx
+        .table('settings')
+        .toCollection()
+        .modify((config) => {
+          config.agenda = agenda
+        })
+    })
+
+    this.version(3).stores({ schedule: null })
   }
 }
 
